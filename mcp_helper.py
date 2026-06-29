@@ -21,7 +21,12 @@ def get_credentials():
     key_b64 += '=' * padding_needed
     decoded_bytes = base64.b64decode(key_b64)
     key_info = json.loads(decoded_bytes.decode('utf-8'))
-    return service_account.Credentials.from_service_account_info(key_info, scopes=SCOPES)
+    credentials = service_account.Credentials.from_service_account_info(key_info, scopes=SCOPES)
+    # DWD: impersonate a real Workspace user so clients only need to share with that account
+    subject = os.getenv('IMPERSONATE_SUBJECT', '').strip()
+    if subject:
+        credentials = credentials.with_subject(subject)
+    return credentials
 
 
 def get_service():
